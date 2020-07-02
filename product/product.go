@@ -10,9 +10,9 @@ import (
 )
 
 type Product struct {
-	Uuid string `json:"uuid"`
+	Uuid 		string `json:"uuid"`
 	Product string `json:"product"`
-	Price string `json:"price,string"`
+	Price 	float64 `json:"price,string"`
 }
 
 type Products struct {
