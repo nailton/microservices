@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -25,7 +26,7 @@ func init() {
 	productsUrl = os.Getenv("PRODUCT_URL")
 }
 
-func loadProducts() []Products {
+func loadProducts() []Product {
 	response, err := http.Get(productsUrl + "/products")
 	if err != nil {
 		fmt.Println("Erro de HTTP")
@@ -39,6 +40,14 @@ func loadProducts() []Products {
 	return products.Products
 }
 
+func ListProducts(w http.ResponseWriter, r *http.Request) {
+	products := loadProducts()
+	t := template.Must(template.ParseFiles("templates/catalog.html"))
+	t.Execute(w, products)
+}
+
 func main(){
-	loadProducts()
+	r := mux.NewRouter()
+	r.HandleFunc("/", ListProducts)
+	http.ListenAndServe(":8080", r)
 }
