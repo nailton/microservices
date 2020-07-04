@@ -23,6 +23,7 @@ type Products struct {
 var productsUrl string
 
 func init() {
+	// Example: export PRODUCT_URL=http://localhost:8081
 	productsUrl = os.Getenv("PRODUCT_URL")
 }
 
@@ -40,14 +41,30 @@ func loadProducts() []Product {
 	return products.Products
 }
 
+func main(){
+	r := mux.NewRouter()
+	r.HandleFunc("/", ListProducts)
+	r.HandleFunc("/product/{id}" , showProduct)
+	http.ListenAndServe(":8080", r)
+}
+
 func ListProducts(w http.ResponseWriter, r *http.Request) {
 	products := loadProducts()
 	t := template.Must(template.ParseFiles("templates/catalog.html"))
 	t.Execute(w, products)
 }
 
-func main(){
-	r := mux.NewRouter()
-	r.HandleFunc("/", ListProducts)
-	http.ListenAndServe(":8080", r)
+func showProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	response, err := http.Get(productsUrl + "/product/" + vars["id"])
+	if err != nil {
+		fmt.Printf("The HTTP request failed with error %s\n", err)
+	}
+	data, _ := ioutil.ReadAll(response.Body)
+
+	var product Product
+	json.Unmarshal(data, &product)
+
+	t := template.Must(template.ParseFiles("templates/view.html"))
+	t.Execute(w, product)
 }
